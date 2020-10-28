@@ -6,6 +6,8 @@ const colors = require("colors");
 let clients = [];
 let target = "";
 let message = "";
+let logMsg = "";
+let newPeople = "";
 
 
 function randomInt (low, high) {
@@ -28,25 +30,19 @@ function sendToAll(data,sender) {
     }
 }
 
-function sendToOne(data, sender, receiver) {
-    clients.forEach(client => {
-        if(client.unique_id === receiver){
-            client.write(data);
-        }
-    });
-}
 
 var server = net.createServer(function(client) {
-    console.log("New client: " + client.remoteAddress + "\n");
-    client.write("Welcome!\r\n");
+    client.write("Bienvenue !\r\n");
     client.unique_id = generateId(3);
+    newPeople = "Nouvel utilisateur connecté ! : " + client.unique_id + "\n";
+    console.log(newPeople.cyan);
     client.write("Vous avez l'ID numero " + client.unique_id + "\n\n");
     clients.push(client);
 
     client.on('data', function(data) {
         
         data = data.toString();
-        console.log(data);
+        
         if(data[0] === '@'){
             target = data[1] + data[2] + data[3];
             clients.forEach(test =>{
@@ -56,19 +52,25 @@ var server = net.createServer(function(client) {
                     data = data.substr(1);
                     data = data.substr(1);
                     data = data.substr(1);
+                    data = data.substr(1);
                     message = client.unique_id + " a dit : " + data;
-                    test.write(message);
+                    logMsg = "(To " + test.unique_id + " only) " + message;
+                    test.write(message.blue);
+                    console.log(logMsg.blue);
                 }
             })
         }
         else{
             message = client.unique_id + " a dit : " + data;
-            sendToAll(message,client);
+            logMsg = "(To All) " + message;
+            sendToAll(message.green,client);
+            console.log(logMsg.green);
         }
+        
     });
 
 });
 
 server.listen(3000,function(){
-    console.log("Server started...", server.address().port, server.address().address);
+    console.log("Server started...", server.address().port, server.address().address, "\n");
 });
